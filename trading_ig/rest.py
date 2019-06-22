@@ -9,6 +9,7 @@ Modified by Femto Trader - 2014-2015 - https://github.com/femtotrader/
 """  # noqa
 
 import json
+import requests
 
 from requests import Session
 
@@ -17,6 +18,12 @@ import time
 
 from .utils import (_HAS_PANDAS, _HAS_MUNCH)
 from .utils import (conv_resol, conv_datetime, conv_to_ms)
+
+import Crypto
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5
+import unicodedata
+import base64
 
 
 logger = logging.getLogger(__name__)
@@ -49,6 +56,13 @@ class IGSessionCRUD(object):
             'Accept': 'application/json; charset=UTF-8'
         }
 
+        self.HEADERS['AUTH'] = {
+            "Content-Type": "application/json; charset=utf-8",
+            "Accept": "application/json; charset=utf-8",
+            "X-IG-API-KEY": self.API_KEY,
+            "Version": "2"
+        }
+
         self.session = session
 
         self.create = self._create_first
@@ -71,13 +85,42 @@ class IGSessionCRUD(object):
         """Returns url from endpoint and base url"""
         return self.BASE_URL + endpoint
 
+    def _authention(self, params):
+        identifier = params['identifier']
+        password = params['password']
+        session = "/session/encryptionKey"
+        m_url = self._url(session)
+        r = requests.get(m_url, headers=self.HEADERS['BASIC'])
+
+        m_data = r.json()
+
+        decoded = base64.b64decode(m_data['encryptionKey'])
+        rsakey = RSA.importKey(decoded)
+        message = password + '|' + str(long(m_data['timeStamp']))
+        input = base64.b64encode(message)
+        encryptedPassword = base64.b64encode(PKCS1_v1_5.new(rsakey).encrypt(input))
+
+        session = "/session"
+        m_url = self._url(session)
+
+        payload = json.dumps({"identifier": identifier,
+                              "password": encryptedPassword,
+                              "encryptedPassword": True
+                              })
+
+        # In[]
+        r = requests.post(m_url, data=payload, headers=self.HEADERS['AUTH'])
+        return r
+
     def _create_first(self, endpoint, params, session):
         """Create first = POST with headers=BASIC_HEADERS"""
-        url = self._url(endpoint)
-        session = self._get_session(session)
-        response = session.post(url,
-                                data=json.dumps(params),
-                                headers=self.HEADERS['BASIC'])
+        # url = self._url(endpoint)
+        # session = self._get_session(session)
+        # response = session.post(url,
+        #                         data=json.dumps(params),
+        #                         headers=self.HEADERS['BASIC'])
+
+        response = self._authention(params)
         if not response.ok:
             raise(Exception("HTTP status code %s %s " %
                             (response.status_code, response.text)))
