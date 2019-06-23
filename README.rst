@@ -99,6 +99,11 @@ or
 
 Work in progress
 ----------------
+In Case You encounter urllib and “SSL: CERTIFICATE_VERIFY_FAILED” Error. It propbaly
+because Python3 doesn't have ssl certificate.
+Solution is to run `/Applications/Python\ 3.6/Install\ Certificates.command`
+See: https://stackoverflow.com/questions/27835619/urllib-and-ssl-certificate-verify-failed-error
+
 
 This project is not a `IG Markets <http://www.ig.com/>`__ project.
 Use it at your own risk.
