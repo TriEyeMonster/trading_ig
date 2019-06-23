@@ -96,9 +96,9 @@ class IGSessionCRUD(object):
 
         decoded = base64.b64decode(m_data['encryptionKey'])
         rsakey = RSA.importKey(decoded)
-        message = password + '|' + str(long(m_data['timeStamp']))
-        input = base64.b64encode(message)
-        encryptedPassword = base64.b64encode(PKCS1_v1_5.new(rsakey).encrypt(input))
+        message = password + '|' + str(int(m_data['timeStamp']))
+        input = base64.b64encode(message.encode('utf8'))
+        encryptedPassword = base64.b64encode(PKCS1_v1_5.new(rsakey).encrypt(input)).decode('utf8')
 
         session = "/session"
         m_url = self._url(session)
@@ -106,7 +106,7 @@ class IGSessionCRUD(object):
         payload = json.dumps({"identifier": identifier,
                               "password": encryptedPassword,
                               "encryptedPassword": True
-                              })
+                              }).encode('utf8')
 
         # In[]
         r = requests.post(m_url, data=payload, headers=self.HEADERS['AUTH'])

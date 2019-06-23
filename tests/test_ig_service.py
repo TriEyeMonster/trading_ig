@@ -163,9 +163,9 @@ def test_ig_service():
         response = ig_service.fetch_watchlist_markets(watchlist_id)
         print(response)
         assert(isinstance(response, pd.DataFrame))
-        # epic = 'CS.D.EURUSD.MINI.IP'
+        epic = 'CS.D.EURUSD.MINI.IP'
         # epic = u'IX.D.CAC.IDF.IP'
-        epic = response['epic'].iloc[0]
+        # epic = response['epic'].iloc[0]
 
         print("")
 
